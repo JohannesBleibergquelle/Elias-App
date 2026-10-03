@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elias' Briefe-Werkstatt</title>
+<style>
+:root{--blue:#1b5fd1;--navy:#0f2f6b;--green:#2e9e5b;--sun:#ffb62e;--bg:#f2f7fc;--ink:#1c2740;--line:#cfdcec}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:18px;line-height:1.5}
+header{background:var(--green);color:#fff;padding:28px 20px 34px;text-align:center;border-bottom:8px solid var(--sun);background-image:linear-gradient(90deg,transparent 49.5%,rgba(255,255,255,.35) 49.5%,rgba(255,255,255,.35) 50.5%,transparent 50.5%)}
+h1{margin:0 0 6px;font-size:clamp(1.9rem,7vw,2.8rem);line-height:1.1;letter-spacing:-.5px}
+header p{margin:0 auto;max-width:30em;font-size:1.1rem}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+.card{background:#fff;border:2px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px}
+h2{margin:0 0 8px;font-size:1.15rem;color:var(--navy)}
+.hint{margin:0 0 10px;font-size:.95rem;color:#51607d}
+textarea,input[type=text]{width:100%;font:inherit;font-size:1.15rem;padding:14px;border:2px solid var(--line);border-radius:12px;background:#fbfdff;color:var(--ink)}
+textarea{min-height:96px;resize:vertical}
+textarea:focus,input:focus,button:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-color:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{flex:1 1 calc(50% - 10px);min-height:54px;padding:10px 12px;font:inherit;font-weight:700;color:var(--navy);background:#fff;border:2px solid var(--line);border-radius:14px;cursor:pointer}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chips.two .chip{flex-basis:calc(50% - 10px)}
+@media(min-width:600px){.chips.rec .chip,.chips.theme .chip{flex-basis:calc(33.3% - 10px)}}
+#who{margin-top:12px;display:none}
+#who .chips{margin-top:10px}
+.big{display:block;width:100%;min-height:64px;font:inherit;font-size:1.35rem;font-weight:800;color:#2a1a00;background:var(--sun);border:0;border-bottom:5px solid #d98f00;border-radius:16px;cursor:pointer}
+.big:active{transform:translateY(2px);border-bottom-width:3px}
+.msg{min-height:1.5em;margin:0 0 10px;color:#b3261e;font-weight:700}
+.note{background:#fff6dd;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:.95rem}
+#result{display:none}
+.paper{background:#fffef8;border:1px solid #e3dcc3;border-left:6px solid #e6a9a9;border-radius:6px;box-shadow:0 6px 18px rgba(15,47,107,.12);padding:22px 20px 26px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.2rem,4.6vw,1.4rem);line-height:2;background-image:repeating-linear-gradient(transparent,transparent calc(2em - 1px),#d5e3f3 calc(2em - 1px),#d5e3f3 2em);background-position:0 .4em}
+.paper p{margin:0}
+.paper .g{font-weight:700}.paper .b{margin:0 0 0}.paper .s{margin-top:2em;font-weight:700;white-space:pre-line}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.acts button{flex:1 1 calc(50% - 10px);min-height:56px;font:inherit;font-weight:700;color:#fff;background:var(--blue);border:0;border-radius:14px;cursor:pointer}
+.acts .alt{background:var(--green)}.acts .plain{background:#fff;color:var(--navy);border:2px solid var(--line)}
+#ok{min-height:1.6em;margin-top:10px;text-align:center;font-weight:800;color:var(--green)}
+footer{text-align:center;font-size:.85rem;color:#51607d;padding-bottom:24px}
+</style>
+</head>
+<body>
+<header>
+<h1>Elias' Briefe-Werkstatt</h1>
+<p>Schreib ein paar Wörter hinein und ich mache daraus einen Brief für dich!</p>
+</header>
+<main>
+<section id="gate">
+<div class="card">
+<h2>🔒 Hallo Elias!</h2>
+<p class="hint">Gib dein Passwort ein, um die Briefe-Werkstatt zu öffnen.</p>
+<input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="Passwort" aria-label="Passwort">
+</div>
+<p class="msg" id="gerr" role="alert"></p>
+<button class="big" id="open">🔓 Öffnen</button>
+</section>
+
+<section id="input" style="display:none">
+<div class="card">
+<h2>1. Deine Wörter (3 bis 8)</h2>
+<p class="hint">Am besten Namenwörter in der Einzahl, getrennt durch Kommas. Zum Beispiel: Fußball, Regen, Opa, Tor, Pizza</p>
+<textarea id="words" placeholder="Fußball, Regen, Opa, Tor, Pizza" autocomplete="off" autocapitalize="sentences"></textarea>
+</div>
+<div class="card">
+<h2>2. Für wen ist der Brief?</h2>
+<div class="chips rec" id="rec"></div>
+<div id="who">
+<p class="hint" id="whoHint"></p>
+<input type="text" id="name" placeholder="Name" autocomplete="off">
+<div class="chips two" id="gen"></div>
+</div>
+</div>
+<div class="card"><h2>3. Worum geht es?</h2><div class="chips theme" id="theme"></div></div>
+<div class="card"><h2>4. Wie schwer soll es sein?</h2><div class="chips two" id="lvl"></div></div>
+<p class="msg" id="err" role="alert"></p>
+<button class="big" id="go">✉️ Brief schreiben</button>
+</section>
+
+<section id="result">
+<div id="note"></div>
+<div class="paper" id="paper"></div>
+<div class="acts">
+<button class="alt" id="again">✨ Anderer Brief</button>
+<button id="fresh">🔄 Neuer Brief</button>
+<button id="edit" class="plain">✏️ Eingaben ändern</button>
+<button id="copy" class="plain">📋 Brief kopieren</button>
+</div>
+<div id="ok" role="status"></div>
+</section>
+</main>
+<footer>Nichts wird gespeichert. Deine Wörter gehen nur zum Schreiben des Briefes an die KI.</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+const REC = [["Mama","Mama"],["Papa","Papa"],["Oma","Oma"],["Opa","Opa"],["Freund","Freund/Freundin"],["Lehrer","Lehrer/in"],["Andere","Eine andere Person"]];
+const TH = {sport:"⚽ Sport",schule:"🏫 Schule",tiere:"🐶 Tiere",abenteuer:"🏕️ Abenteuer",fantasie:"🚀 Fantasie",freizeit:"🎮 Freizeit",natur:"🌳 Natur",lustig:"😂 Lustige Geschichte",ueber:"🎲 Überraschung"};
+
+function parse(raw) {
+  const out = [], seen = new Set();
+  raw.split(/[,;\s]+/).forEach(s => {
+    s = s.replace(/[^A-Za-zÄÖÜäöüß-]/g, "").replace(/^-+|-+$/g, "");
+    if (!s || seen.has(s.toLowerCase())) return;
+    seen.add(s.toLowerCase()); out.push(s);  /* Schreibweise bleibt wie eingegeben: die KI korrigiert sie */
+  });
+  return out;
+}
+
+let pin = "";  /* nur im Arbeitsspeicher, wird nirgends gespeichert */
+async function unlock() {
+  const v = $("#pin").value.trim(), g = $("#gerr"), b = $("#open");
+  if (!v) { g.textContent = "Bitte gib dein Passwort ein."; return; }
+  g.textContent = ""; b.disabled = true;
+  try {
+    const res = await fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ check: true, pin: v }) });
+    if (res.ok) { pin = v; $("#pin").value = ""; $("#gate").style.display = "none"; $("#input").style.display = "block"; }
+    else if (res.status === 401) g.textContent = "Das Passwort stimmt nicht. Probier es noch einmal. 🙂";
+    else g.textContent = "Das Öffnen hat gerade nicht geklappt (Status " + res.status + "). Versuch es gleich noch einmal.";
+  } catch (e) { g.textContent = "Keine Verbindung. Bist du online? 🙂"; }
+  b.disabled = false;
+}
+$("#open").onclick = unlock;
+$("#pin").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
+
+const sel = { rec: "Mama", theme: "ueber", lvl: "normal", gen: "m" };
+const LVL = [["normal", "Normal"], ["hard", "Knifflig"]];
+let current = null;
+
+function chips(id, key, items) {
+  const box = $("#" + id); box.innerHTML = "";
+  items.forEach(([v, label]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = label;
+    b.className = "chip" + (sel[key] === v ? " on" : "");
+    b.setAttribute("aria-pressed", sel[key] === v);
+    b.onclick = () => { sel[key] = v; draw(); };
+    box.append(b);
+  });
+}
+function draw() {
+  chips("rec", "rec", REC);
+  chips("theme", "theme", Object.entries(TH).map(([k, t]) => [k, t]));
+  chips("lvl", "lvl", LVL);
+  const ask = ["Freund", "Lehrer", "Andere"].includes(sel.rec);
+  $("#who").style.display = ask ? "block" : "none";
+  if (ask) {
+    const t = sel.rec === "Lehrer";
+    $("#whoHint").textContent = t ? "Wie heißt die Lehrerin oder der Lehrer? (Nur der Nachname)" : "Wie heißt die Person?";
+    chips("gen", "gen", t ? [["m", "Herr"], ["f", "Frau"]] : [["m", "Lieber"], ["f", "Liebe"]]);
+  }
+}
+
+function frame() {
+  const teacher = sel.rec === "Lehrer", nm = current.name, boy = sel.gen === "m";
+  let greet;
+  if (["Mama", "Papa", "Oma", "Opa"].includes(sel.rec)) greet = (["Papa", "Opa"].includes(sel.rec) ? "Lieber " : "Liebe ") + sel.rec;
+  else if (teacher) greet = (boy ? "Lieber Herr " : "Liebe Frau ") + nm;
+  else if (sel.rec === "Freund") greet = nm ? (boy ? "Lieber " : "Liebe ") + nm : (boy ? "Lieber Freund" : "Liebe Freundin");
+  else greet = (boy ? "Lieber " : "Liebe ") + nm;
+  const bye = teacher ? pick(["Mit freundlichen Grüßen", "Viele Grüße"]) : pick(["Viele Grüße", "Liebe Grüße", "Bis bald"]);
+  return { greet: greet + ",", sign: bye + "\nElias" };
+}
+function recipientText() {
+  const boy = sel.gen === "m", nm = current.name;
+  if (["Mama", "Papa", "Oma", "Opa"].includes(sel.rec)) return sel.rec;
+  if (sel.rec === "Lehrer") return (boy ? "Lehrer Herr " : "Lehrerin Frau ") + nm;
+  if (sel.rec === "Freund") return (boy ? "Freund" : "Freundin") + (nm ? " " + nm : "");
+  return "eine Person namens " + nm;
+}
+function paint(l, text) {
+  const box = $("#paper"); box.innerHTML = "";
+  (l ? [["g", l.greet], ["b", l.body], ["s", l.sign]] : [["b", text]]).forEach(([c, t]) => { const p = document.createElement("p"); p.className = c; p.textContent = t; box.append(p); });
+}
+let run = 0;
+async function show() {
+  const my = ++run, f = frame();
+  current.letter = null; $("#ok").textContent = "";
+  $("#note").innerHTML = current.note ? '<div class="note"></div>' : "";
+  if (current.note) $("#note .note").textContent = current.note;
+  document.querySelectorAll(".acts button").forEach(b => b.disabled = true);
+  paint(null, "✍️ Ich schreibe deinen Brief …");
+  try {
+    const res = await fetch("/api/brief", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin, words: current.words, recipient: recipientText(), sie: sel.rec === "Lehrer", level: sel.lvl, theme: TH[sel.theme].replace(/^[^\p{L}]+/u, "") })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (my !== run) return;
+    if (res.status === 401) { pin = ""; $("#result").style.display = "none"; $("#gate").style.display = "block"; $("#gerr").textContent = "Bitte gib dein Passwort noch einmal ein."; return; }
+    if (!res.ok || !data.body) throw new Error(data.detail || data.error || ("Status " + res.status + " (Funktion nicht gefunden?)"));
+    current.letter = { ...f, body: data.body };
+    paint(current.letter);
+  } catch (e) {
+    if (my !== run) return;
+    paint(null, "Hoppla, der Brief ist gerade nicht angekommen. Drück gleich noch einmal auf „Anderer Brief“. 😊\n\n(Hinweis für Mama/Papa: " + e.message + ")");
+  }
+  if (my === run) document.querySelectorAll(".acts button").forEach(b => b.disabled = false);
+}
+function view(r) { $("#input").style.display = r ? "none" : "block"; $("#result").style.display = r ? "block" : "none"; window.scrollTo(0, 0); }
+
+$("#go").onclick = () => {
+  const err = $("#err"); err.textContent = "";
+  let words = parse($("#words").value), note = "";
+  if (words.length < 3) { err.textContent = "Gib bitte mindestens 3 Wörter ein."; return; }
+  if (words.length > 8) { words = words.slice(0, 8); note = "Du hast mehr als 8 Wörter eingegeben. Ich habe die ersten 8 benutzt."; }
+  const name = $("#name").value.trim().split(/\s+/).map(cap).join(" ");
+  if ((sel.rec === "Lehrer" || sel.rec === "Andere") && !name) { err.textContent = "Bitte gib den Namen der Person ein."; return; }
+  current = { words, note, name };
+  view(true); show();
+};
+$("#again").onclick = show;
+$("#edit").onclick = () => { run++; view(false); };
+$("#fresh").onclick = () => {
+  run++;
+  $("#words").value = ""; $("#name").value = "";
+  Object.assign(sel, { rec: "Mama", theme: "ueber", lvl: "normal", gen: "m" });
+  $("#err").textContent = ""; draw(); view(false);
+};
+$("#copy").onclick = async () => {
+  const l = current.letter; if (!l) return; const text = l.greet + "\n\n" + l.body + "\n\n" + l.sign;
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.append(t); t.select(); try { document.execCommand("copy"); } catch (x) {} t.remove(); }
+  $("#ok").textContent = "Brief kopiert! 👍";
+};
+draw();
+</script>
+</body>
+</html>
